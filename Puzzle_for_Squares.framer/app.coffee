@@ -1,16 +1,15 @@
-#bugs, not updating location in all directions
-
 #ToDos
 #-------------------
-#Put on Git hub
+# add swipe multiple swiping
 #Do everything in SVGs, like arrows
-#Put in title bar
 #animate intro: 
 #	start blocks opacity 0, scale 1.2
 #	animate blocks, for [i] in cells scale 1 opacity 1 i++
 
 
 #new level idea, you can have triangle that push the puck diagonally when they hit
+
+#new idea, blocks shift color when you an action happens
 
 #This is the ice game :-) 
 
@@ -35,6 +34,8 @@ mainMenu = {
 	name: 'MAIN MENU'
 }
 
+levels = []
+
 level_1 = {
 	name: 'LEVEL 1'
 	lowestScore: null
@@ -54,10 +55,13 @@ level_1 = {
 		[1,  0,  2,  0,  1,  1],
 	]
 }
+levels.push(level_1)
 
 level_2 = {
-	name: 'LEVEL 1'
+	name: 'LEVEL 2'
 	lowestScore: null
+	puckStartX: 1
+	puckStartY: 2
 	puck: {x: 1, y: 2}
 	goal: {x: 0, y: 3}
 	board: [
@@ -67,12 +71,65 @@ level_2 = {
 		[0,  0,  0,  0,  0,  0],
 	]
 }
+levels.push(level_2)
+
+level_3 = {
+	name: 'LEVEL 3'
+	lowestScore: null
+	puckStartX: 1
+	puckStartY: 2
+	puck: {x: 1, y: 2}
+	goal: {x: 0, y: 3}
+	board: [
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  0,  0,  0],
+	]
+}
+levels.push(level_3)
+
+level_4 = {
+	name: 'LEVEL 4'
+	lowestScore: null
+	puckStartX: 1
+	puckStartY: 2
+	puck: {x: 1, y: 2}
+	goal: {x: 0, y: 3}
+	board: [
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  2,  0,  0],
+		[0,  0,  0,  0,  0,  0],
+	]
+}
+levels.push(level_4)
+
+level_5 = {
+	name: 'LEVEL 5'
+	lowestScore: null
+	puckStartX: 1
+	puckStartY: 2
+	puck: {x: 1, y: 2}
+	goal: {x: 0, y: 3}
+	board: [
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  0,  0,  0],
+	]
+}
+levels.push(level_5)
+
 
 currentLevel = mainMenu
 rows = 0
 cols = 0
 
-firstMove = true
+#number of levels
+# print Object.keys(levels).length
+# print Object.keys(levels)
+
 numberOfMoves = 0
 
 levelChange = false
@@ -90,12 +147,13 @@ bg = new BackgroundLayer backgroundColor: "#28affa"
 bg.bringToFront()
 
 titlebar = new Layer
+	height: 100
 	width: Screen.width
 	backgroundColor: lightGrey
-levelName = new Layer
+CurrentlevelName = new Layer
 	backgroundColor: 'transparent'
 	superLayer: titlebar
-levelName.html = currentLevel.name
+CurrentlevelName.html = currentLevel.name
 
 titleText = {
 	font: "100 50px/1.1 Helvetica Neue"
@@ -104,10 +162,10 @@ titleText = {
 	letterSpacing: '10px'
 }
 
-levelName.style = titleText
-levelName.size = Utils.textSize(levelName.html, titleText)
-levelName.bringToFront()
-levelName.center()
+CurrentlevelName.style = titleText
+CurrentlevelName.size = Utils.textSize(CurrentlevelName.html, titleText)
+CurrentlevelName.bringToFront()
+CurrentlevelName.center()
 
 # numberOfMoves = new Layer
 # 	backgroundColor: 'transparent'
@@ -126,20 +184,47 @@ levelName.center()
 # numberOfMoves.size = Utils.textSize(numberOfMoves.html, titleText)
 # numberOfMoves.bringToFront()
 
-testButton = new Layer
-	backgroundColor: 'red'
+levelSelector = new Layer
+	width: Screen.width-100
+	height: Screen.height-titlebar.height
+	backgroundColor: lightGrey
+levelSelector.centerX()
+levelSelector.centerY(titlebar.height)
 
-testbollean = false
+#Level Selector
+createLevelButtons = (buttonNumber) ->
+	levelSelectButton[buttonNumber].on Events.Click,()->
+		currentLevel = levels[buttonNumber]
+		createLevel()
+		levelSelector.bringToFront()
+		levelSelector.animate
+			properties:
+				y: Screen.height
+			curve: 'spring(300,50,0)'
+			time: 0.2
 
-if testbollean is true
-	print 'testbollean is true!'
-
-testButton.on Events.Click,()->
-	print 'clicked testButton'
-	currentLevel = level_1
-	createLevel()
-# 	levelChange = true
-# 	testbollean = true
+levelNameRowIndex = 0
+levelNameGutter = 50
+levelSelectButton = []
+for level in levels
+	levelNameButton = new Layer
+		backgroundColor: 'transparent'
+		superLayer: levelSelector
+		x: 50
+		name: level.name + ' button'
+	levelSelectButton.push(levelNameButton)
+	levelNameButton.html = level.name
+	levelText = {
+		font: "100 50px/1.1 Helvetica Neue"
+		textAlign: "center"
+		color: "black"
+		letterSpacing: '10px'
+	}
+	levelNameButton.style = levelText
+	levelNameButton.size = Utils.textSize(levelNameButton.html, levelText)
+	levelNameButton.y = levelNameRowIndex * (levelNameButton.height + levelNameGutter)+ 50
+	createLevelButtons(levelNameRowIndex)
+	levelNameRowIndex++
 
 
 gutter = 10
@@ -165,12 +250,11 @@ createLevel = () ->
 	goalPosition = currentLevel.goal
 	
 	puckCoordinates = currentLevel.puck
-	print puckCoordinates
+	#print puckCoordinates
 	
 	wrapper.width = gridSize*cols+gutter*cols
 	wrapper.height = gridSize*rows+gutter*rows
 	
-	print 'level changed!'
 	cells = []
 	
 	# Create the grid layers
@@ -229,6 +313,7 @@ createLevel = () ->
 		# Win Condition
 	puck.on Events.AnimationEnd,()->
 		if puckCoordinates.x == goalPosition.x and puckCoordinates.y == goalPosition.y
+			winner.bringToFront()
 			winner.animate
 				properties: 
 					scale: 1
@@ -438,7 +523,7 @@ createLevel = () ->
 		maxX: Screen.width - 50
 	
 	levelChange = false
-	print 'level change: ' + levelChange
+# 	print 'level change: ' + levelChange
 	
 	refreshButtton.on Events.Click,()->
 		puck.midX = cellMidX(currentLevel.puckStartX, currentLevel.puckStartY)
@@ -453,10 +538,6 @@ createLevel = () ->
 # 		controler.destroy()
 # 		refreshButtton.destroy()
 #		createLevel()
-		print 'puck coordinates: '
-		print puckCoordinates
-		print 'puck starting point: '
-		print currentLevel.puck
 		
 		
 # 		wrapper.animate
@@ -476,6 +557,26 @@ createLevel = () ->
 # 			#print wrapper.subLayers()
 # 			createLevel()
 # 			#window.location.reload()
+	destroyLevel = () ->
+		puck.midX = cellMidX(currentLevel.puckStartX, currentLevel.puckStartY)
+		puck.midY = cellMidY(currentLevel.puckStartX, currentLevel.puckStartY)
+		puckCoordinates.x = currentLevel.puckStartX
+		puckCoordinates.y = currentLevel.puckStartY
+		for rowTile in cells
+			for colTile in rowTile
+				colTile.destroy()
+		puck.destroy()
+		goal.destroy()
+		controler.destroy()
+		refreshButtton.destroy()
+
+
+	CurrentlevelName.on Events.Click,()->
+		destroyLevel()
+		levelSelector.animate
+			properties: 
+				y: titlebar.height+50
+
 
 
 winner = new Layer
@@ -505,7 +606,6 @@ subheading = {
 
 winner.style = heading
 #winner.size = Utils.winner(winner.html, heading)
-winner.bringToFront()
 
 
 #Debugging!
