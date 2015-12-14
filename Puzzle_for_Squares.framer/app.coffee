@@ -1,10 +1,14 @@
+# ICON CREDIT
+# reload by useiconic.com from the Noun Project
 
 # Scale all content
 #Framer.Device.contentScale = 0.9
 
 #ToDos
 #-------------------
-# Create board scaler
+# Install SVG animator and handler module
+# Make it scale bigger
+# Create shake refresh anaimation
 #Do everything in SVGs, like arrows
 #animate intro: 
 #	start blocks opacity 0, scale 1.2
@@ -82,10 +86,47 @@ level_2 = {
 	puck: {x: 1, y: 2}
 	goal: {x: 0, y: 3}
 	board: [
-		[0,  0,  0,  0,  0,  0],
-		[0,  0,  0,  0,  0,  0],
-		[0,  0,  0,  0,  0,  0],
-		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
+		[0,  0,  0,],
 	]
 }
 levels.push(level_2)
@@ -306,10 +347,14 @@ createLevel = () ->
 	boardWrapper.centerY(titlebar.height/2)
 	
 	cellMidX = (xCoordinate, yCoordinate) -> 
-		boardWrapper.x + cells[yCoordinate][xCoordinate].midX
+# 		#When puck is not in the boardWrapper
+# 		#boardWrapper.x + cells[yCoordinate][xCoordinate].midX
+		cells[yCoordinate][xCoordinate].midX
 	
 	cellMidY = (xCoordinate, yCoordinate) -> 
-		boardWrapper.y + cells[yCoordinate][xCoordinate].midY
+# 		#When puck is not in the boardWrapper
+# 		#boardWrapper.y + cells[yCoordinate][xCoordinate].midY
+		cells[yCoordinate][xCoordinate].midY
 	
 	
 	goal = new Layer
@@ -320,6 +365,7 @@ createLevel = () ->
 		opacity: 0.8
 		midX: cellMidX(currentLevel.goal.x, currentLevel.goal.y)
 		midY: cellMidY(currentLevel.goal.x, currentLevel.goal.y)
+		superLayer: boardWrapper
 	
 	
 	puck = new Layer
@@ -330,21 +376,8 @@ createLevel = () ->
 		opacity: 0.8
 		midX: cellMidX(currentLevel.puckStartX, currentLevel.puckStartY)
 		midY: cellMidY(currentLevel.puckStartX, currentLevel.puckStartY)
+		superLayer: boardWrapper
 	
-	#Device Scaling
-# 	deviceScaleWrapper = new Layer
-# 		width: boardWrapper.width
-# 		height: boardWrapper.height
-# 		y: boardWrapper.y
-# 		x: boardWrapper.x
-# 		clip: false
-# 	deviceScaleWrapper.addSubLayer(boardWrapper)
-# 	deviceScaleWrapper.addSubLayer(puck)
-# 	deviceScaleWrapper.addSubLayer(goal)
-	
-# 	boardWrapper.scale = 0.8
-# 	puck.scale = 0.8
-# 	goal.scale = 0.8
 	
 		# Win Condition
 	puck.on Events.AnimationEnd,()->
@@ -356,8 +389,8 @@ createLevel = () ->
 				curve: 'spring(300,40,0)'
 	
 	controler = new Layer
-		width: boardWrapper.width
-		height: boardWrapper.height
+		width: Screen.width
+		height: Screen.height-titlebar.height
 		midX: boardWrapper.midX
 		midY: boardWrapper.midY
 		backgroundColor: 'transparent'
@@ -423,11 +456,37 @@ createLevel = () ->
 					nextMoveQueue.shift()
 # 			print nextMoveQueue
 	
-	
-	
 	controler.on Events.DragEnd, ()->
 		controler.midX = controlerOrigin[0]
 		controler.midY = controlerOrigin[1]
+
+	#Device Scaling 2.0
+	boardPadding = 50*2
+	boardScaleFactor = 1
+	if boardWrapper.width > Screen.width-boardPadding or boardWrapper.height > Screen.height-boardPadding
+		#print 'its big!'
+		if boardWrapper.width > Screen.width-boardPadding
+			boardScaleFactor = Screen.width/(boardWrapper.width+boardPadding)
+		if boardWrapper.height > Screen.height-boardPadding
+			boardScaleFactor = Screen.height/(boardWrapper.height+boardPadding+titlebar.height*4)
+	boardWrapper.scale = boardScaleFactor
+	#controler.scale = boardScaleFactor
+	
+	
+	#Device Scaling
+# 	deviceScaleWrapper = new Layer
+# 		width: boardWrapper.width
+# 		height: boardWrapper.height
+# 		y: boardWrapper.y
+# 		x: boardWrapper.x
+# 		clip: false
+# 	deviceScaleWrapper.addSubLayer(boardWrapper)
+# 	deviceScaleWrapper.addSubLayer(puck)
+# 	deviceScaleWrapper.addSubLayer(goal)
+	
+# 	boardWrapper.scale = 0.8
+# 	puck.scale = 0.8
+# 	goal.scale = 0.8
 	
 	#	TITLE TYPE ACTIONS	#
 	#	TITLE TYPE ACTIONS	#
@@ -618,15 +677,93 @@ createLevel = () ->
 	refreshButtton = new Layer
 		maxX: Screen.width
 		maxX: Screen.width - 50
+		backgroundColor: 'transparent'
+		scale: 0.5
+		opacity: 0.6
+		html: '<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 19.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 16 16" enable-background="new 0 0 16 16" xml:space="preserve">
+<path d="M16,0l-2.3,2.3c-1.4-1.3-3.2-2.1-5-2.2C6.8-0.1,4.9,0.4,3.4,1.5L3.2,1.6c-3,2.2-4.1,6.1-2.6,9.5c1.5,3.6,5.4,5.5,9.1,4.7
+	C13.3,15,16,11.7,16,8h-2c0,2.7-2,5.2-4.6,5.8c0,0,0,0,0,0c-2.8,0.6-5.7-0.9-6.8-3.5c-1.1-2.6-0.3-5.6,2-7.2
+	c2.3-1.6,5.6-1.3,7.7,0.7L10,6h6L16,0L16,0z"/>
+</svg>
+'
+# 		html: '<?xml version="1.0" encoding="utf-8"?>
+# <!-- Generator: Adobe Illustrator 19.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+# <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+# <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+# 	 viewBox="0 0 90 90" enable-background="new 0 0 90 90" xml:space="preserve">
+# <g>
+# 	<g>
+# 		<g>
+# 			<path d="M45,90C20.2,90,0,69.8,0,45S20.2,0,45,0s45,20.2,45,45S69.8,90,45,90z M45,5.7C23.3,5.7,5.7,23.3,5.7,45
+# 				S23.3,84.3,45,84.3S84.3,66.7,84.3,45S66.7,5.7,45,5.7z"/>
+# 		</g>
+# 	</g>
+# 	<g>
+# 		<g>
+# 			<path d="M58.9,59.1C58.8,59.1,58.8,59.1,58.9,59.1c-0.8,0-1.6-0.3-2.1-0.9L50.2,51c-1.1-1.2-1-3,0.2-4c1.2-1.1,3-1,4,0.2l4.6,5
+# 				l5.1-5.1c1.1-1.1,2.9-1.1,4,0s1.1,2.9,0,4l-7.2,7.2C60.3,58.8,59.6,59.1,58.9,59.1z"/>
+# 		</g>
+# 		<g>
+# 			<path d="M41.6,65.8c-11.3,0-20.4-9.2-20.4-20.4c0-11.3,9.2-20.5,20.4-20.5S62,34.1,62,45.4c0,1.6-1.3,2.9-2.9,2.9
+# 				s-2.9-1.3-2.9-2.9c0-8.1-6.6-14.7-14.7-14.7s-14.7,6.6-14.7,14.7c0,8.2,6.6,14.8,14.7,14.8c1.6,0,2.9,1.3,2.9,2.9
+# 				S43.1,65.8,41.6,65.8z"/>
+# 		</g>
+# 	</g>
+# </g>
+# </svg>
+# '
 	
 	levelChange = false
 # 	print 'level change: ' + levelChange
-	
+	shakeCount = -1
 	refreshButtton.on Events.Click,()->
-		puck.midX = cellMidX(currentLevel.puckStartX, currentLevel.puckStartY)
-		puck.midY = cellMidY(currentLevel.puckStartX, currentLevel.puckStartY)
-		puckCoordinates.x = currentLevel.puckStartX
-		puckCoordinates.y = currentLevel.puckStartY
+		controler.draggable.enabled = false
+		puck.animate
+			properties: 
+				opacity: 0
+			time: 0.4
+# 		boardWrapper.animate
+# 			properties: 
+# 				x: boardWrapper.x+50
+# 			time: 0.1
+# 		shakeCount++
+# 		boardWrapper.on Events.AnimationEnd,->
+# 			if shakeCount isnt -1
+# 				shakeCount++
+# 			print shakeCount
+# 			if shakeCount is 1
+# 				#print '0 fired'
+# 				boardWrapper.animate
+# 					properties: 
+# 						x: boardWrapper.x-100
+# 					time: 0.1
+# 			if shakeCount is 2
+# 				#print '1 fired'
+# 				boardWrapper.animate
+# 					properties: 
+# 						x: boardWrapper.x+50
+# 					time: 0.1
+# 				shakeCount = -1
+# 				print shakeCount
+		puck.once Events.AnimationEnd, () ->
+			puck.midX = cellMidX(currentLevel.puckStartX, currentLevel.puckStartY)
+			puck.midY = cellMidY(currentLevel.puckStartX, currentLevel.puckStartY)
+			puckCoordinates.x = currentLevel.puckStartX
+			puckCoordinates.y = currentLevel.puckStartY
+			puck.animate
+				properties: 
+					opacity: 1
+				time: 0.4
+			controler.draggable.enabled = true
+		refreshButtton.animate
+			properties: 
+				rotation: 360
+		refreshButtton.on Events.AnimationEnd,()->
+			refreshButtton.rotation = 0
 # 		for rowTile in cells
 # 			for colTile in rowTile
 # 				colTile.destroy()
