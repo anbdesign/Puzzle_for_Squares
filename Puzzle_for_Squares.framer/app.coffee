@@ -1,6 +1,10 @@
+
+# Scale all content
+#Framer.Device.contentScale = 0.9
+
 #ToDos
 #-------------------
-# add swipe multiple swiping
+# Create board scaler
 #Do everything in SVGs, like arrows
 #animate intro: 
 #	start blocks opacity 0, scale 1.2
@@ -25,6 +29,19 @@
 # 200s = buttons and doors	// slide over button to open door
 #		e.g. 200 button opens 201 door, 202 button opens 203 door
 
+#***************************************************
+#Animation Defaults
+
+puckCurve = 'cubic-bezier(0.175, 0.885, 0.32, 1.05)'
+puckCurveTime = 0.5
+
+# puckCurve = 'cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+#Framer.Defaults.Animation = curve: "spring(400,30,10)"
+# Framer.Defaults.Layer.shadowColor = 'rgba(0,0,0,0.12)'
+# Framer.Defaults.Layer.shadowY = 24
+# Framer.Defaults.Layer.shadowBlur = 32
+
+
 
 
 #***************************************************
@@ -39,19 +56,19 @@ levels = []
 level_1 = {
 	name: 'LEVEL 1'
 	lowestScore: null
-	puckStartX: 0
-	puckStartY: 0
-	puck: {x: 0, y: 0}
+	puckStartX: 2
+	puckStartY: 3
+	puck: {x: 2, y: 3}
 	goal: {x: 5, y: 7}
 	board: [
 		[0,  0,  0,  1,  0,  0],
 		[0,  0,  0,  0,  1,  1],
-		[2,  0,  0,  0,  0,  0],
-		[0,  0,  1,  0,  0,  2],
-		[1,  0,  0,  0,  0,  0],
-		[0,  0,  0,  0,  0,  1],
-		[1,  0,  0,  0,  0,  0],
-		[1,  0,  0,  2,  0,  0],
+		[0,  1,  1,  1,  0,  0],
+		[1,  0,  0,  0,  1,  2],
+		[1,  0,  0,  0,  1,  0],
+		[0,  1,  1,  1,  0,  1],
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  0,  1,  0],
 		[1,  0,  2,  0,  1,  1],
 	]
 }
@@ -122,7 +139,7 @@ level_5 = {
 levels.push(level_5)
 
 
-currentLevel = mainMenu
+currentLevel = level_1
 rows = 0
 cols = 0
 
@@ -188,8 +205,9 @@ levelSelector = new Layer
 	width: Screen.width-100
 	height: Screen.height-titlebar.height
 	backgroundColor: lightGrey
+	y: Screen.height
 levelSelector.centerX()
-levelSelector.centerY(titlebar.height)
+# levelSelector.centerY(titlebar.height)
 
 #Level Selector
 createLevelButtons = (buttonNumber) ->
@@ -234,13 +252,15 @@ gridHeight = gridSize
 
 
 # Wrapper that will center the grid
-wrapper = new Layer 
+boardWrapper = new Layer 
 	backgroundColor: "transparent", clip: false
 	width: gridSize*cols+gutter*cols
 	height: gridSize*rows+gutter*rows
-wrapper.center()
+boardWrapper.centerX()
+boardWrapper.centerY(titlebar.height)
 
 createLevel = () ->
+	CurrentlevelName.html = currentLevel.name
 	gridNumber = 0
 	rows = currentLevel.board.length
 	cols = currentLevel.board[0].length
@@ -252,8 +272,8 @@ createLevel = () ->
 	puckCoordinates = currentLevel.puck
 	#print puckCoordinates
 	
-	wrapper.width = gridSize*cols+gutter*cols
-	wrapper.height = gridSize*rows+gutter*rows
+	boardWrapper.width = gridSize*cols+gutter*cols
+	boardWrapper.height = gridSize*rows+gutter*rows
 	
 	cells = []
 	
@@ -270,7 +290,7 @@ createLevel = () ->
 				x: colIndex * (gridWidth + gutter)
 				y: rowIndex * (gridHeight + gutter)
 				borderRadius: 2
-				superLayer: wrapper
+				superLayer: boardWrapper
 			cells[rowIndex].push(cell)
 			#Block identification
 			if currentLevel.board[rowIndex][colIndex] is 0
@@ -282,13 +302,14 @@ createLevel = () ->
 			if currentLevel.board[rowIndex][colIndex] is 3
 				cell.backgroundColor = 'yellow'
 			gridNumber++
-	wrapper.center()
+	boardWrapper.centerX()
+	boardWrapper.centerY(titlebar.height/2)
 	
 	cellMidX = (xCoordinate, yCoordinate) -> 
-		wrapper.x + cells[yCoordinate][xCoordinate].midX
+		boardWrapper.x + cells[yCoordinate][xCoordinate].midX
 	
 	cellMidY = (xCoordinate, yCoordinate) -> 
-		wrapper.y + cells[yCoordinate][xCoordinate].midY
+		boardWrapper.y + cells[yCoordinate][xCoordinate].midY
 	
 	
 	goal = new Layer
@@ -310,6 +331,21 @@ createLevel = () ->
 		midX: cellMidX(currentLevel.puckStartX, currentLevel.puckStartY)
 		midY: cellMidY(currentLevel.puckStartX, currentLevel.puckStartY)
 	
+	#Device Scaling
+# 	deviceScaleWrapper = new Layer
+# 		width: boardWrapper.width
+# 		height: boardWrapper.height
+# 		y: boardWrapper.y
+# 		x: boardWrapper.x
+# 		clip: false
+# 	deviceScaleWrapper.addSubLayer(boardWrapper)
+# 	deviceScaleWrapper.addSubLayer(puck)
+# 	deviceScaleWrapper.addSubLayer(goal)
+	
+# 	boardWrapper.scale = 0.8
+# 	puck.scale = 0.8
+# 	goal.scale = 0.8
+	
 		# Win Condition
 	puck.on Events.AnimationEnd,()->
 		if puckCoordinates.x == goalPosition.x and puckCoordinates.y == goalPosition.y
@@ -320,11 +356,13 @@ createLevel = () ->
 				curve: 'spring(300,40,0)'
 	
 	controler = new Layer
-		width: wrapper.width
-		height: wrapper.height
-		midX: wrapper.midX
-		midY: wrapper.midY
+		width: boardWrapper.width
+		height: boardWrapper.height
+		midX: boardWrapper.midX
+		midY: boardWrapper.midY
 		backgroundColor: 'transparent'
+# 		backgroundColor: 'yellow'
+# 		opacity: 0.7
 	controler.draggable.enabled = true
 	controler.draggable.momentum = false
 	controlerOrigin = [controler.midX, controler.midY]
@@ -336,6 +374,7 @@ createLevel = () ->
 	controlerRespsNumRight = controler.midX+controlerResponsiveness
 	
 	# print puckCoordinates
+	nextMoveQueue = []
 	
 	controler.on Events.DragEnd,()->
 		if puck.isAnimating isnt true 
@@ -353,6 +392,39 @@ createLevel = () ->
 				puckMoveRight()
 				#print 'move puck right \\ dynamic'
 				#print puckCoordinates
+		else
+			if controler.midY < controlerRespsNumUp and controler.draggable.direction == 'up'
+				nextMoveQueue.push('up')
+# 				print nextMoveQueue
+			if controler.midY > controlerRespsNumDown and controler.draggable.direction == 'down'
+				nextMoveQueue.push('down')
+# 				print nextMoveQueue
+			if controler.midX < controlerRespsNumLeft and controler.draggable.direction == 'left'
+				nextMoveQueue.push('left')
+# 				print nextMoveQueue
+			if controler.midX > controlerRespsNumRight and controler.draggable.direction == 'right'
+				nextMoveQueue.push('right')
+# 				print nextMoveQueue
+	
+	puck.on Events.AnimationEnd,()->
+		if nextMoveQueue.length > 0
+			for i in nextMoveQueue
+				if i is 'right'
+					puckMoveRight()
+					nextMoveQueue.shift()
+				if i is 'down'
+					puckMoveDown()
+					nextMoveQueue.shift()
+				if i is 'left'
+					puckMoveLeft()
+					nextMoveQueue.shift()
+				if i is 'up'
+					puckMoveUp()
+					nextMoveQueue.shift()
+# 			print nextMoveQueue
+	
+	
+	
 	controler.on Events.DragEnd, ()->
 		controler.midX = controlerOrigin[0]
 		controler.midY = controlerOrigin[1]
@@ -366,6 +438,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midX: cellMidX(puckCoordinates.x+nearestObstacle+1 ,puckCoordinates.y)
+				curve: puckCurve
+				time: puckCurveTime
 			#Update puck coordinates
 			puckCoordinates.x = puckCoordinates.x+nearestObstacle+1
 			puckCoordinates.y = puckCoordinates.y
@@ -373,6 +447,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midX: cellMidX(puckCoordinates.x-nearestObstacle-1,puckCoordinates.y)
+				curve: puckCurve
+				time: puckCurveTime
 			#Update puck coordinates
 			puckCoordinates.x = puckCoordinates.x-nearestObstacle-1
 			puckCoordinates.y = puckCoordinates.y 
@@ -380,6 +456,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midY: cellMidY(puckCoordinates.x,puckCoordinates.y+nearestObstacle+1)
+				curve: puckCurve
+				time: puckCurveTime
 			#Update puck coordinates
 			puckCoordinates.x = puckCoordinates.x
 			puckCoordinates.y = puckCoordinates.y+nearestObstacle+1
@@ -387,6 +465,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midY: cellMidY(puckCoordinates.x,puckCoordinates.y-nearestObstacle-1)
+				curve: puckCurve
+				time: puckCurveTime
 			#Update puck coordinates
 			puckCoordinates.x = puckCoordinates.x
 			puckCoordinates.y = puckCoordinates.y-nearestObstacle-1
@@ -409,6 +489,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midX: cellMidX(cols-1,puckCoordinates.y)
+				curve: puckCurve
+				time: puckCurveTime
 			puckCoordinates.x = cols-1
 			puckCoordinates.y = puckCoordinates.y 
 		nearestObstacle = puckFromEdgeArray.indexOf(tileType)
@@ -417,6 +499,9 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midX: cellMidX(puckCoordinates.x+nearestObstacle, puckCoordinates.y)
+				curve: puckCurve
+				time: puckCurveTime
+				
 			#Update puck coordinates
 			puckCoordinates.x = puckCoordinates.x+nearestObstacle
 			puckCoordinates.y = puckCoordinates.y 
@@ -439,6 +524,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midX: cellMidX(0, puckCoordinates.y)
+				curve: puckCurve
+				time: puckCurveTime
 			#now update coordinates
 			puckCoordinates.x = 0
 			puckCoordinates.y = puckCoordinates.y 
@@ -448,6 +535,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midX: cellMidX(puckCoordinates.x-nearestObstacle, puckCoordinates.y)
+				curve: puckCurve
+				time: puckCurveTime
 			#Update puck coordinates
 			puckCoordinates.x = puckCoordinates.x-nearestObstacle
 			puckCoordinates.y = puckCoordinates.y 
@@ -470,6 +559,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midY: cellMidY(puckCoordinates.x,rows-1)
+				curve: puckCurve
+				time: puckCurveTime
 			#now update coordinates
 			puckCoordinates.x = puckCoordinates.x
 			puckCoordinates.y = rows-1 
@@ -479,6 +570,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midY: cellMidY(puckCoordinates.x, puckCoordinates.y+nearestObstacle)
+				curve: puckCurve
+				time: puckCurveTime
 			#Update puck coordinates
 			puckCoordinates.x = puckCoordinates.x
 			puckCoordinates.y = puckCoordinates.y+nearestObstacle 
@@ -502,6 +595,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midY: cellMidY(puckCoordinates.x,0)
+				curve: puckCurve
+				time: puckCurveTime
 			#now update coordinates
 			puckCoordinates.x = puckCoordinates.x
 			puckCoordinates.y = 0 
@@ -511,6 +606,8 @@ createLevel = () ->
 			puck.animate
 				properties: 
 					midY: cellMidY(puckCoordinates.x, puckCoordinates.y-nearestObstacle)
+				curve: puckCurve
+				time: puckCurveTime
 			#Update puck coordinates
 			puckCoordinates.x = puckCoordinates.x
 			puckCoordinates.y = puckCoordinates.y-nearestObstacle 
@@ -576,6 +673,9 @@ createLevel = () ->
 		levelSelector.animate
 			properties: 
 				y: titlebar.height+50
+# 		currentLevel = null
+		CurrentlevelName.html = mainMenu.name
+
 
 
 
@@ -607,6 +707,7 @@ subheading = {
 winner.style = heading
 #winner.size = Utils.winner(winner.html, heading)
 
+createLevel()
 
 #Debugging!
 # puck.on Events.AnimationEnd,()->
@@ -631,3 +732,4 @@ winner.style = heading
 #if currentLevel is mainMenu
 #	controler.visible = false
 #	refreshButtton.visible = false
+
