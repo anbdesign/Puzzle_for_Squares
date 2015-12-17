@@ -6,6 +6,8 @@
 
 #ToDos
 #-------------------
+# add next level button to the 'you win' screen
+# Make sure the goal stops you when you slide over it
 # Install SVG animator and handler module
 # Make it scale bigger
 # Create shake refresh anaimation
@@ -13,6 +15,7 @@
 #animate intro: 
 #	start blocks opacity 0, scale 1.2
 #	animate blocks, for [i] in cells scale 1 opacity 1 i++
+
 
 
 #new level idea, you can have triangle that push the puck diagonally when they hit
@@ -61,19 +64,19 @@ level_1 = {
 	name: 'LEVEL 1'
 	lowestScore: null
 	puckStartX: 2
-	puckStartY: 3
-	puck: {x: 2, y: 3}
-	goal: {x: 5, y: 7}
+	puckStartY: 2
+	puck: {x: 2, y: 2}
+	goal: {x: 4, y: 7}
 	board: [
 		[0,  0,  0,  1,  0,  0],
-		[0,  0,  0,  0,  1,  1],
-		[0,  1,  1,  1,  0,  0],
-		[1,  0,  0,  0,  1,  2],
-		[1,  0,  0,  0,  1,  0],
-		[0,  1,  1,  1,  0,  1],
 		[0,  0,  0,  0,  0,  0],
-		[0,  0,  0,  0,  1,  0],
-		[1,  0,  2,  0,  1,  1],
+		[1,  0,  0,  0,  2,  0],
+		[0,  0,  1,  0,  0,  0],
+		[0,  0,  0,  0,  0,  0],
+		[0,  0,  0,  1,  1,  1],
+		[1,  0,  1,  1,  0,  0],
+		[0,  0,  0,  0,  0,  1],
+		[0,  0,  0,  0,  0,  1],
 	]
 }
 levels.push(level_1)
@@ -184,6 +187,14 @@ currentLevel = level_1
 rows = 0
 cols = 0
 
+
+gridSize = 70
+gutter = 2
+gridRadius = 10
+gridWidth  = gridSize
+gridHeight = gridSize
+boardWrapperColor = 'white'
+
 #number of levels
 # print Object.keys(levels).length
 # print Object.keys(levels)
@@ -286,17 +297,11 @@ for level in levels
 	levelNameRowIndex++
 
 
-gutter = 10
-gridSize = 100
-gridWidth  = gridSize
-gridHeight = gridSize
-
-
 # Wrapper that will center the grid
 boardWrapper = new Layer 
-	backgroundColor: "transparent", clip: false
-	width: gridSize*cols+gutter*cols
-	height: gridSize*rows+gutter*rows
+	backgroundColor: boardWrapperColor, clip: false
+	width: gridSize*cols+gutter*cols+gutter
+	height: gridSize*rows+gutter*rows+gutter
 boardWrapper.centerX()
 boardWrapper.centerY(titlebar.height)
 
@@ -328,9 +333,9 @@ createLevel = () ->
 				name: "grid_" + gridNumber
 				width:  gridWidth
 				height: gridHeight
-				x: colIndex * (gridWidth + gutter)
-				y: rowIndex * (gridHeight + gutter)
-				borderRadius: 2
+				x: colIndex * (gridWidth + gutter) + gutter/2
+				y: rowIndex * (gridHeight + gutter) + gutter/2
+				borderRadius: gridRadius
 				superLayer: boardWrapper
 			cells[rowIndex].push(cell)
 			#Block identification
@@ -358,8 +363,8 @@ createLevel = () ->
 	
 	
 	goal = new Layer
-		width: 100
-		height: 100
+		width: gridSize
+		height: gridSize
 		borderRadius: 20
 		backgroundColor: 'green'
 		opacity: 0.8
@@ -369,8 +374,8 @@ createLevel = () ->
 	
 	
 	puck = new Layer
-		width: 100
-		height: 100
+		width: gridSize
+		height: gridSize
 		borderRadius: 60
 		backgroundColor: 'black'
 		opacity: 0.8
@@ -469,7 +474,15 @@ createLevel = () ->
 			boardScaleFactor = Screen.width/(boardWrapper.width+boardPadding)
 		if boardWrapper.height > Screen.height-boardPadding
 			boardScaleFactor = Screen.height/(boardWrapper.height+boardPadding+titlebar.height*4)
+	#Scaling Up
+# 	if boardWrapper.width < Screen.width-boardPadding or boardWrapper.height < Screen.height-boardPadding
+# 		print 'its small!'
+# 		if Screen.height/(boardWrapper.height+boardPadding+titlebar.height*4) < Screen.width/(boardWrapper.width+boardPadding)
+# 			boardScaleFactor = Screen.width/(boardWrapper.width+boardPadding)
+# 		if Screen.height/(boardWrapper.height+boardPadding+titlebar.height*4) > Screen.width/(boardWrapper.width+boardPadding)
+# 			boardScaleFactor = Screen.height/(boardWrapper.height+boardPadding+titlebar.height*4)
 	boardWrapper.scale = boardScaleFactor
+	#print boardScaleFactor
 	#controler.scale = boardScaleFactor
 	
 	
@@ -690,32 +703,6 @@ createLevel = () ->
 	c2.3-1.6,5.6-1.3,7.7,0.7L10,6h6L16,0L16,0z"/>
 </svg>
 '
-# 		html: '<?xml version="1.0" encoding="utf-8"?>
-# <!-- Generator: Adobe Illustrator 19.2.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-# <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-# <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-# 	 viewBox="0 0 90 90" enable-background="new 0 0 90 90" xml:space="preserve">
-# <g>
-# 	<g>
-# 		<g>
-# 			<path d="M45,90C20.2,90,0,69.8,0,45S20.2,0,45,0s45,20.2,45,45S69.8,90,45,90z M45,5.7C23.3,5.7,5.7,23.3,5.7,45
-# 				S23.3,84.3,45,84.3S84.3,66.7,84.3,45S66.7,5.7,45,5.7z"/>
-# 		</g>
-# 	</g>
-# 	<g>
-# 		<g>
-# 			<path d="M58.9,59.1C58.8,59.1,58.8,59.1,58.9,59.1c-0.8,0-1.6-0.3-2.1-0.9L50.2,51c-1.1-1.2-1-3,0.2-4c1.2-1.1,3-1,4,0.2l4.6,5
-# 				l5.1-5.1c1.1-1.1,2.9-1.1,4,0s1.1,2.9,0,4l-7.2,7.2C60.3,58.8,59.6,59.1,58.9,59.1z"/>
-# 		</g>
-# 		<g>
-# 			<path d="M41.6,65.8c-11.3,0-20.4-9.2-20.4-20.4c0-11.3,9.2-20.5,20.4-20.5S62,34.1,62,45.4c0,1.6-1.3,2.9-2.9,2.9
-# 				s-2.9-1.3-2.9-2.9c0-8.1-6.6-14.7-14.7-14.7s-14.7,6.6-14.7,14.7c0,8.2,6.6,14.8,14.7,14.8c1.6,0,2.9,1.3,2.9,2.9
-# 				S43.1,65.8,41.6,65.8z"/>
-# 		</g>
-# 	</g>
-# </g>
-# </svg>
-# '
 	
 	levelChange = false
 # 	print 'level change: ' + levelChange
