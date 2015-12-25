@@ -1,3 +1,7 @@
+#Incase of unsolvable level created, reload page
+window.onerror = -> 
+	location.reload()
+
 # ICON CREDIT
 # reload by useiconic.com from the Noun Project
 
@@ -12,9 +16,21 @@ debugMode = true
 #Bug 1 #Purple blocks are overwriting already placed grey blocks
 	#Current solution was to add a 'break', not sure if that worked
 
+# Undefined bug
+	# » "updated temp puck X: 6"
+	# » "updated temp puck Y: 7"
+	# » "checking position"
+	# » "last move was down"
+	# » ["right", "left", 0, 0]
+	# » ["right", "left"]
+	# » "left"
+	# » []
+	# » undefined
+
 
 # New
 #-------------------
+# reload on error
 
 #ToDos
 #-------------------
@@ -205,7 +221,7 @@ levels.push(level_5)
 
 #-------------------------------
 
-generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
+generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh, rockPercentage) ->
 	#Variable setup
 	lastTileWide = tileNumWide-1
 	lastTileHigh = tileNumHigh-1
@@ -231,19 +247,19 @@ generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
 	puckTempPosition = {x: null, y: null}
 	puckTempPosition.x = generatedLevel.puckStartX
 	puckTempPosition.y = generatedLevel.puckStartY
-	print 'temp puck X: ' + puckTempPosition.x
-	print 'temp puck Y: ' + puckTempPosition.y
+# 	print 'temp puck X: ' + puckTempPosition.x
+# 	print 'temp puck Y: ' + puckTempPosition.y
 
 	# create moves to solution
 	directionsToSolution = []
 	movesToSolution = []
 	#figure out a random direction to move in 
 	for directions in [0..(numberOfMovesToComplete-1)]
-		print 'updated temp puck X: ' + puckTempPosition.x
-		print 'updated temp puck Y: ' + puckTempPosition.y
+# 		print 'updated temp puck X: ' + puckTempPosition.x
+# 		print 'updated temp puck Y: ' + puckTempPosition.y
 		
 		availableMoves = ['right', 'left', 'down', 'up']
-		print 'checking position'
+# 		print 'checking position'
 		if puckTempPosition.x is 0
 			availableMoves[1] = 0
 		if puckTempPosition.y is 0
@@ -256,26 +272,26 @@ generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
 # 		if directions > 0
 # 			print directionsToSolution[(directions-1)]
 		if "right" is directionsToSolution[(directions-1)]
-			print 'last move was right'
+			#print 'last move was right'
 			availableMoves[0] = 0
 			availableMoves[1] = 0
 		if "left" is directionsToSolution[(directions-1)]
-			print 'last move was left'
+			#print 'last move was left'
 			availableMoves[0] = 0
 			availableMoves[1] = 0
 		if "down" is directionsToSolution[(directions-1)]
-			print 'last move was down'
+			#print 'last move was down'
 			availableMoves[2] = 0
 			availableMoves[3] = 0
 		if "up" is directionsToSolution[(directions-1)]
-			print 'last move was up'
+			#print 'last move was up'
 			availableMoves[2] = 0
 			availableMoves[3] = 0
-		print availableMoves
+# 		print availableMoves
 		filteredMoves = availableMoves.filter (number0) -> number0 isnt 0
-		print filteredMoves
+# 		print filteredMoves
 		currentMove = Utils.randomChoice(filteredMoves)
-		print currentMove
+# 		print currentMove
 		directionsToSolution.push(currentMove)
 		
 		#Determine a random amount of moves to move in
@@ -284,30 +300,26 @@ generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
 		doNotCountArray = []
 		
 		if currentMove is "right"
-			print 'moving right...'
+			#print 'moving right...'
 			if puckTempPosition.x is (lastTileWide-1)
 				randomXRight = (tileNumWide-1)
 			else
 				for i in [(puckTempPosition.x+2)..lastTileWide]
 					if generatedLevel.board[puckTempPosition.y][i] is -1
 						break
-						print 'ahhh theres already a purple there!'
+						#print 'ahhh theres already a purple there!'
 					else
 						countingArray.push(i)
-				print countingArray
+				#print countingArray
 				randomXRight = Utils.randomChoice(countingArray)
-			print randomXRight
+			#print randomXRight
 			if randomXRight is tileNumWide-1
 				for tilesRightAll in [(puckTempPosition.x+1)..(tileNumWide-1)]
-					print 'tiles right All: (below)'
-					print tilesRightAll
 					generatedLevel.board[puckTempPosition.y][tilesRightAll] = -1
 					
 				puckTempPosition.x = tileNumWide-1
 			else
 				for tilesRight in [(puckTempPosition.x+1)..(randomXRight-1)]
-					print 'tiles right All: (below)'
-					print tilesRight
 					generatedLevel.board[puckTempPosition.y][tilesRight] = -1
 					
 				generatedLevel.board[puckTempPosition.y][randomXRight] = 1
@@ -317,15 +329,15 @@ generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
 			if puckTempPosition.x is 1
 				randomXLeft = 0
 			else
-				for i in [0..(puckTempPosition.x-2)]
+				for i in [(puckTempPosition.x-2)..0]
 					if generatedLevel.board[puckTempPosition.y][i] is -1
 						break
-						print 'ahhh theres already a purple there!'
+						#print 'ahhh theres already a purple there!'
 					else
 						countingArray.push(i)
-				print countingArray
+				#print countingArray
 				randomXLeft = Utils.randomChoice(countingArray)
-			print randomXLeft
+			#print randomXLeft
 			if randomXLeft is 0
 				for tilesLeftAll in [(puckTempPosition.x-1)..0]
 					generatedLevel.board[puckTempPosition.y][tilesLeftAll] = -1
@@ -333,8 +345,6 @@ generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
 				puckTempPosition.x = 0
 			else
 				for tilesLeft in [(randomXLeft+1)..(puckTempPosition.x-1)]
-					print 'tiles left: (below)'
-					print tilesLeft
 					generatedLevel.board[puckTempPosition.y][tilesLeft] = -1
 				
 				generatedLevel.board[puckTempPosition.y][randomXLeft] = 1
@@ -347,12 +357,12 @@ generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
 				for i in [(puckTempPosition.y+2)..lastTileHigh]
 					if generatedLevel.board[i][puckTempPosition.x] is -1
 						break
-						print 'ahhh theres already a purple there!'
+						#print 'ahhh theres already a purple there!'
 					else
 						countingArray.push(i)
-				print countingArray
+				#print countingArray
 				randomYDown = Utils.randomChoice(countingArray)
-			print randomYDown
+			#print randomYDown
 			if randomYDown is tileNumHigh-1
 				for tilesDownAll in [(puckTempPosition.y+1)..(tileNumHigh-1)]
 					generatedLevel.board[tilesDownAll][puckTempPosition.x] = -1
@@ -369,15 +379,15 @@ generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
 			if puckTempPosition.y is 1
 				randomYUp = 0
 			else 
-				for i in [0..(puckTempPosition.y-2)]
+				for i in [(puckTempPosition.y-2)..0]
 					if generatedLevel.board[i][puckTempPosition.x] is -1
 						break
-						print 'ahhh theres already a purple there!'
+						#print 'ahhh theres already a purple there!'
 					else
 						countingArray.push(i)
-				print countingArray
+				#print countingArray
 				randomYUp = Utils.randomChoice(countingArray)
-			print randomYUp
+			#print randomYUp
 			if randomYUp is 0
 				for tilesUpAll in [(puckTempPosition.y-1)..0]
 					generatedLevel.board[tilesUpAll][puckTempPosition.x] = -1
@@ -392,23 +402,30 @@ generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
 		
 		
 		
-		print '--------------------------'
-	print 'directionsToSolution: (below)'
-	print directionsToSolution
+# 		print '--------------------------'
+# 	print 'directionsToSolution: (below)'
+# 	print directionsToSolution
 	
 	generatedLevel.board[generatedLevel.puckStartY][generatedLevel.puckStartX] = -0.5
 	
 	#Generate Rocks at random
+	if rockPercentage is 0
+		randomRockArray = [0]
+	else
+		randomRockArray = [1]
+	for i in [1... Utils.round((1/rockPercentage))]
+		randomRockArray.push(0)
+	#print randomRockArray
 	for rowIndex in [0...tileNumHigh]
 		for ColIndex in [0...tileNumWide]
 			if generatedLevel.board[rowIndex][ColIndex] is 0
-				randomRock = Utils.randomChoice([0, 0, 0, 1])
+				randomRock = Utils.randomChoice(randomRockArray)
 				generatedLevel.board[rowIndex][ColIndex] = randomRock
 	
 	generatedLevel.goal.x = puckTempPosition.x + 0
 	generatedLevel.goal.y = puckTempPosition.y + 0
-	print 'updated temp puck X: ' + puckTempPosition.x
-	print 'updated temp puck Y: ' + puckTempPosition.y
+# 	print 'updated temp puck X: ' + puckTempPosition.x
+# 	print 'updated temp puck Y: ' + puckTempPosition.y
 	generatedLevel.puck.x = generatedLevel.puckStartX + 1 - 1
 	generatedLevel.puck.y = generatedLevel.puckStartY + 1 - 1
 	levels.push(generatedLevel)
@@ -422,11 +439,17 @@ generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
 difficulty = 'hard'
 if difficulty is 'easy'
 	numberOfMovesToComplete = 3
+	rockPercentage = 4
+
 if difficulty is 'medium'
 	numberOfMovesToComplete = 5
+	rockPercentage = 4
+	
 if difficulty is 'hard'
 	numberOfMovesToComplete = 10
-generateLevelFunction(numberOfMovesToComplete, 12, 18)
+	rockPercentage = .20
+
+generateLevelFunction(numberOfMovesToComplete, 12, 18, rockPercentage)
 
 
 
@@ -687,20 +710,20 @@ createLevel = () ->
 	controler.on Events.DragEnd,()->
 		if puck.isAnimating isnt true 
 			if controler.midY < controlerRespsNumUp and controler.draggable.direction == 'up'
-				print 'controler up'
+				#print 'controler up'
 				puckMoveUp()
 				#print 'puck up fixed'
 				#print puck.isAnimating
 			if controler.midY > controlerRespsNumDown and controler.draggable.direction == 'down'
-				print 'controler down'
+				#print 'controler down'
 				puckMoveDown()
 				#print 'puck down fixed'
 			if controler.midX < controlerRespsNumLeft and controler.draggable.direction == 'left'
-				print 'controler left'
+				#print 'controler left'
 				puckMoveLeft()
 				#print "move puck left \\ dynamic"
 			if controler.midX > controlerRespsNumRight and controler.draggable.direction == 'right'
-				print 'controler right'
+				#print 'controler right'
 				puckMoveRight()
 				#print 'move puck right \\ dynamic'
 				#print puckCoordinates
@@ -816,7 +839,6 @@ createLevel = () ->
 			if i > 0
 				tileType = i
 				break #stop going through the row
-		print i
 		if i <= 0
 			puck.animate
 				properties: 
@@ -1082,20 +1104,19 @@ createLevel = () ->
 		
 		showSolutionButton.on Events.Click, ->
 			if solutionShown
-					print 'hiding solution'
+					#print 'hiding solution'
 					for rowIndex in [0...rows]
 						for ColIndex in [0...cols]
 							if currentLevel.board[rowIndex][ColIndex] is -1
 								cells[rowIndex][ColIndex].backgroundColor = 'white'
 					solutionShown = false
 			else
-					print 'showing solution'
+					#print 'showing solution'
 					for rowIndex in [0...rows]
 						for ColIndex in [0...cols]
 							if currentLevel.board[rowIndex][ColIndex] is -1
 								cells[rowIndex][ColIndex].backgroundColor = 'purple'
 					solutionShown = true
-					print solutionShown
 
 
 
@@ -1127,9 +1148,8 @@ subheading = {
 winner.style = heading
 #winner.size = Utils.winner(winner.html, heading)
 winner.on Events.Click,->
-	winner.animate
-		properties: 
-			scale: 0
+	destroyLevel()
+	createLevel()
 
 createLevel()
 
