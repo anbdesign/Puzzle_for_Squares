@@ -1,8 +1,20 @@
 # ICON CREDIT
 # reload by useiconic.com from the Noun Project
 
-# Scale all content
-#Framer.Device.contentScale = 0.9
+debugMode = true
+
+#Next Steps
+#------------------
+#To ensure the levels are difficult, have the puck fall off the edge and not have the solution generate a solution so it hits the edge.
+
+# Bugs
+#-------------------
+#Bug 1 #Purple blocks are overwriting already placed grey blocks
+	#Current solution was to add a 'break', not sure if that worked
+
+
+# New
+#-------------------
 
 #ToDos
 #-------------------
@@ -16,6 +28,10 @@
 #	start blocks opacity 0, scale 1.2
 #	animate blocks, for [i] in cells scale 1 opacity 1 i++
 
+#IDEAS!
+#-------------------
+# Require every block to be hit in order to unlock the goal
+
 
 
 #new level idea, you can have triangle that push the puck diagonally when they hit
@@ -25,6 +41,7 @@
 #This is the ice game :-) 
 
 # 0 = blank space	//
+# 0.5 = goal placeholder // stops on space
 # 1 = boulder		// stops before space
 # 2 = brakes		// stops on space
 # 3 = up arrow		// shoot the puck in that direction
@@ -66,19 +83,23 @@ level_1 = {
 	puckStartX: 2
 	puckStartY: 2
 	puck: {x: 2, y: 2}
-	goal: {x: 4, y: 7}
+	goal: {x: 5, y: 6}
 	board: [
 		[0,  0,  0,  1,  0,  0],
 		[0,  0,  0,  0,  0,  0],
-		[1,  0,  0,  0,  2,  0],
-		[0,  0,  1,  0,  0,  0],
-		[0,  0,  0,  0,  0,  0],
-		[0,  0,  0,  1,  1,  1],
-		[1,  0,  1,  1,  0,  0],
-		[0,  0,  0,  0,  0,  1],
-		[0,  0,  0,  0,  0,  1],
+		[1,  (-1),  0,  -1,  -1,  (-1)],
+		[0,  (-1),  1,  0,  0,  0],
+		[0,  (-1),  0,  0,  0,  0],
+		[0,  (-1),  0,  1,  1,  1],
+		[1,  (-1),  1,  0,  0,  0],
+		[(-1),  (-1),  0,  0,  0,  0],
+		[(-1),  (-1),  0,  0,  0,  0],
 	]
 }
+
+#level_1.board[9] = 	[1,  1,  1,  1,  1,  1]
+# print level_1.board
+
 levels.push(level_1)
 
 level_2 = {
@@ -182,8 +203,250 @@ level_5 = {
 }
 levels.push(level_5)
 
+#-------------------------------
 
-currentLevel = level_1
+generateLevelFunction = (numberOfMovesToComplete, tileNumWide, tileNumHigh) ->
+	#Variable setup
+	lastTileWide = tileNumWide-1
+	lastTileHigh = tileNumHigh-1
+	
+	#Randomly place the puck
+	randomPuckStartX = Utils.round(Utils.randomNumber(1, lastTileWide-1))
+	randomPuckStartY = Utils.round(Utils.randomNumber(1, lastTileHigh-1))
+	#Generate blank board
+	generatedLevel = {
+		name: difficulty + ' LEVEL'
+		uniqueID: 'generateLevel' + numberOfMovesToComplete + tileNumWide + tileNumHigh + '%' + 'hex code goes here'
+		lowestScore: null
+		puckStartX: randomPuckStartX
+		puckStartY: randomPuckStartY
+		puck: {x: randomPuckStartX, y: randomPuckStartY}
+		goal: {x: 0, y: 0}
+		board: []
+	}
+	for rowIndex in [0...tileNumHigh]
+		generatedLevel.board[rowIndex] = []
+		for ColIndex in [0...tileNumWide]
+			generatedLevel.board[rowIndex].push(0)
+	puckTempPosition = {x: null, y: null}
+	puckTempPosition.x = generatedLevel.puckStartX
+	puckTempPosition.y = generatedLevel.puckStartY
+	print 'temp puck X: ' + puckTempPosition.x
+	print 'temp puck Y: ' + puckTempPosition.y
+
+	# create moves to solution
+	directionsToSolution = []
+	movesToSolution = []
+	#figure out a random direction to move in 
+	for directions in [0..(numberOfMovesToComplete-1)]
+		print 'updated temp puck X: ' + puckTempPosition.x
+		print 'updated temp puck Y: ' + puckTempPosition.y
+		
+		availableMoves = ['right', 'left', 'down', 'up']
+		print 'checking position'
+		if puckTempPosition.x is 0
+			availableMoves[1] = 0
+		if puckTempPosition.y is 0
+			availableMoves[3] = 0 
+		if puckTempPosition.x is lastTileWide
+			availableMoves[0] = 0
+		if puckTempPosition.y is lastTileHigh
+			availableMoves[2] = 0
+		
+# 		if directions > 0
+# 			print directionsToSolution[(directions-1)]
+		if "right" is directionsToSolution[(directions-1)]
+			print 'last move was right'
+			availableMoves[0] = 0
+			availableMoves[1] = 0
+		if "left" is directionsToSolution[(directions-1)]
+			print 'last move was left'
+			availableMoves[0] = 0
+			availableMoves[1] = 0
+		if "down" is directionsToSolution[(directions-1)]
+			print 'last move was down'
+			availableMoves[2] = 0
+			availableMoves[3] = 0
+		if "up" is directionsToSolution[(directions-1)]
+			print 'last move was up'
+			availableMoves[2] = 0
+			availableMoves[3] = 0
+		print availableMoves
+		filteredMoves = availableMoves.filter (number0) -> number0 isnt 0
+		print filteredMoves
+		currentMove = Utils.randomChoice(filteredMoves)
+		print currentMove
+		directionsToSolution.push(currentMove)
+		
+		#Determine a random amount of moves to move in
+		#	create an array with every whole number from where the puck is to the edge, remove numbers where purple pucks are
+		countingArray = []
+		doNotCountArray = []
+		
+		if currentMove is "right"
+			print 'moving right...'
+			if puckTempPosition.x is (lastTileWide-1)
+				randomXRight = (tileNumWide-1)
+			else
+				for i in [(puckTempPosition.x+2)..lastTileWide]
+					if generatedLevel.board[puckTempPosition.y][i] is -1
+						break
+						print 'ahhh theres already a purple there!'
+					else
+						countingArray.push(i)
+				print countingArray
+				randomXRight = Utils.randomChoice(countingArray)
+			print randomXRight
+			if randomXRight is tileNumWide-1
+				for tilesRightAll in [(puckTempPosition.x+1)..(tileNumWide-1)]
+					print 'tiles right All: (below)'
+					print tilesRightAll
+					generatedLevel.board[puckTempPosition.y][tilesRightAll] = -1
+					
+				puckTempPosition.x = tileNumWide-1
+			else
+				for tilesRight in [(puckTempPosition.x+1)..(randomXRight-1)]
+					print 'tiles right All: (below)'
+					print tilesRight
+					generatedLevel.board[puckTempPosition.y][tilesRight] = -1
+					
+				generatedLevel.board[puckTempPosition.y][randomXRight] = 1
+				puckTempPosition.x = randomXRight-1
+		
+		if currentMove is "left"
+			if puckTempPosition.x is 1
+				randomXLeft = 0
+			else
+				for i in [0..(puckTempPosition.x-2)]
+					if generatedLevel.board[puckTempPosition.y][i] is -1
+						break
+						print 'ahhh theres already a purple there!'
+					else
+						countingArray.push(i)
+				print countingArray
+				randomXLeft = Utils.randomChoice(countingArray)
+			print randomXLeft
+			if randomXLeft is 0
+				for tilesLeftAll in [(puckTempPosition.x-1)..0]
+					generatedLevel.board[puckTempPosition.y][tilesLeftAll] = -1
+				
+				puckTempPosition.x = 0
+			else
+				for tilesLeft in [(randomXLeft+1)..(puckTempPosition.x-1)]
+					print 'tiles left: (below)'
+					print tilesLeft
+					generatedLevel.board[puckTempPosition.y][tilesLeft] = -1
+				
+				generatedLevel.board[puckTempPosition.y][randomXLeft] = 1
+				puckTempPosition.x = randomXLeft+1
+		
+		if currentMove is "down"
+			if puckTempPosition.y is (lastTileHigh-1)
+				randomYDown = (tileNumHigh-1)
+			else
+				for i in [(puckTempPosition.y+2)..lastTileHigh]
+					if generatedLevel.board[i][puckTempPosition.x] is -1
+						break
+						print 'ahhh theres already a purple there!'
+					else
+						countingArray.push(i)
+				print countingArray
+				randomYDown = Utils.randomChoice(countingArray)
+			print randomYDown
+			if randomYDown is tileNumHigh-1
+				for tilesDownAll in [(puckTempPosition.y+1)..(tileNumHigh-1)]
+					generatedLevel.board[tilesDownAll][puckTempPosition.x] = -1
+					
+				puckTempPosition.y = tileNumHigh-1
+			else
+				for tilesDown in [(puckTempPosition.y+1)..(randomYDown-1)]
+					generatedLevel.board[tilesDown][puckTempPosition.x] = -1
+					
+				generatedLevel.board[randomYDown][puckTempPosition.x] = 1
+				puckTempPosition.y = randomYDown-1
+		
+		if currentMove is "up"
+			if puckTempPosition.y is 1
+				randomYUp = 0
+			else 
+				for i in [0..(puckTempPosition.y-2)]
+					if generatedLevel.board[i][puckTempPosition.x] is -1
+						break
+						print 'ahhh theres already a purple there!'
+					else
+						countingArray.push(i)
+				print countingArray
+				randomYUp = Utils.randomChoice(countingArray)
+			print randomYUp
+			if randomYUp is 0
+				for tilesUpAll in [(puckTempPosition.y-1)..0]
+					generatedLevel.board[tilesUpAll][puckTempPosition.x] = -1
+					
+				puckTempPosition.y = 0
+			else
+				for tilesUp in [(puckTempPosition.y-1)..(randomYUp+1)]
+					generatedLevel.board[tilesUp][puckTempPosition.x] = -1
+					
+				generatedLevel.board[randomYUp][puckTempPosition.x] = 1
+				puckTempPosition.y = randomYUp+1
+		
+		
+		
+		print '--------------------------'
+	print 'directionsToSolution: (below)'
+	print directionsToSolution
+	
+	generatedLevel.board[generatedLevel.puckStartY][generatedLevel.puckStartX] = -0.5
+	
+	#Generate Rocks at random
+	for rowIndex in [0...tileNumHigh]
+		for ColIndex in [0...tileNumWide]
+			if generatedLevel.board[rowIndex][ColIndex] is 0
+				randomRock = Utils.randomChoice([0, 0, 0, 1])
+				generatedLevel.board[rowIndex][ColIndex] = randomRock
+	
+	generatedLevel.goal.x = puckTempPosition.x + 0
+	generatedLevel.goal.y = puckTempPosition.y + 0
+	print 'updated temp puck X: ' + puckTempPosition.x
+	print 'updated temp puck Y: ' + puckTempPosition.y
+	generatedLevel.puck.x = generatedLevel.puckStartX + 1 - 1
+	generatedLevel.puck.y = generatedLevel.puckStartY + 1 - 1
+	levels.push(generatedLevel)
+# 	if levelBuildingError is true
+# 		print 'error!'
+# 		window.location.reload()
+# 		print 'error!'
+# print levelBuildingErrorCode
+
+#Generate Level Code
+difficulty = 'hard'
+if difficulty is 'easy'
+	numberOfMovesToComplete = 3
+if difficulty is 'medium'
+	numberOfMovesToComplete = 5
+if difficulty is 'hard'
+	numberOfMovesToComplete = 10
+generateLevelFunction(numberOfMovesToComplete, 12, 18)
+
+
+
+#------------------------------
+#------------------------------
+#------------------------------
+#------------------------------
+#------------------------------
+#------------------------------
+#------------------------------
+#------------------------------
+# LEVEL GENERATOR OVER
+#------------------------------
+#------------------------------
+#------------------------------
+#------------------------------
+#------------------------------
+
+
+currentLevel = levels[5]
 rows = 0
 cols = 0
 
@@ -201,9 +464,7 @@ boardWrapperColor = 'white'
 
 numberOfMoves = 0
 
-levelChange = false
 #level_1.board[0][0]
-
 #***************************************************
 #Colors
 
@@ -315,11 +576,14 @@ createLevel = () ->
 	
 	goalPosition = currentLevel.goal
 	
+# 	currentLevel.board[currentLevel.goal.y][currentLevel.goal.x] = 0.5
+	
 	puckCoordinates = currentLevel.puck
 	#print puckCoordinates
 	
 	boardWrapper.width = gridSize*cols+gutter*cols
 	boardWrapper.height = gridSize*rows+gutter*rows
+	
 	
 	cells = []
 	
@@ -339,8 +603,14 @@ createLevel = () ->
 				superLayer: boardWrapper
 			cells[rowIndex].push(cell)
 			#Block identification
+			if currentLevel.board[rowIndex][colIndex] is -0.5
+				cell.backgroundColor = 'white'
+			if currentLevel.board[rowIndex][colIndex] is -1
+				cell.backgroundColor = 'white'
 			if currentLevel.board[rowIndex][colIndex] is 0
 				cell.backgroundColor = 'white'
+			if currentLevel.board[rowIndex][colIndex] is 0.5
+				cell.backgroundColor = 'transparent'
 			if currentLevel.board[rowIndex][colIndex] is 1
 				cell.backgroundColor = 'grey'
 			if currentLevel.board[rowIndex][colIndex] is 2
@@ -417,16 +687,20 @@ createLevel = () ->
 	controler.on Events.DragEnd,()->
 		if puck.isAnimating isnt true 
 			if controler.midY < controlerRespsNumUp and controler.draggable.direction == 'up'
+				print 'controler up'
 				puckMoveUp()
 				#print 'puck up fixed'
 				#print puck.isAnimating
 			if controler.midY > controlerRespsNumDown and controler.draggable.direction == 'down'
+				print 'controler down'
 				puckMoveDown()
 				#print 'puck down fixed'
 			if controler.midX < controlerRespsNumLeft and controler.draggable.direction == 'left'
+				print 'controler left'
 				puckMoveLeft()
 				#print "move puck left \\ dynamic"
 			if controler.midX > controlerRespsNumRight and controler.draggable.direction == 'right'
+				print 'controler right'
 				puckMoveRight()
 				#print 'move puck right \\ dynamic'
 				#print puckCoordinates
@@ -485,22 +759,7 @@ createLevel = () ->
 	#print boardScaleFactor
 	#controler.scale = boardScaleFactor
 	
-	
-	#Device Scaling
-# 	deviceScaleWrapper = new Layer
-# 		width: boardWrapper.width
-# 		height: boardWrapper.height
-# 		y: boardWrapper.y
-# 		x: boardWrapper.x
-# 		clip: false
-# 	deviceScaleWrapper.addSubLayer(boardWrapper)
-# 	deviceScaleWrapper.addSubLayer(puck)
-# 	deviceScaleWrapper.addSubLayer(goal)
-	
-# 	boardWrapper.scale = 0.8
-# 	puck.scale = 0.8
-# 	goal.scale = 0.8
-	
+
 	#	TITLE TYPE ACTIONS	#
 	#	TITLE TYPE ACTIONS	#
 	#	TITLE TYPE ACTIONS	#
@@ -557,7 +816,8 @@ createLevel = () ->
 			if i > 0
 				tileType = i
 				break #stop going through the row
-		if i is 0
+		print i
+		if i <= 0
 			puck.animate
 				properties: 
 					midX: cellMidX(cols-1,puckCoordinates.y)
@@ -567,6 +827,8 @@ createLevel = () ->
 			puckCoordinates.y = puckCoordinates.y 
 		nearestObstacle = puckFromEdgeArray.indexOf(tileType)
 		#^ returns the coordinate of the block
+		if tileType is 0.5
+			tile2break('right', nearestObstacle)
 		if tileType is 1
 			puck.animate
 				properties: 
@@ -592,7 +854,7 @@ createLevel = () ->
 			if i > 0
 				tileType = i
 				break #stop going through the row
-		if i is 0
+		if i <= 0
 			puck.animate
 				properties: 
 					midX: cellMidX(0, puckCoordinates.y)
@@ -603,6 +865,8 @@ createLevel = () ->
 			puckCoordinates.y = puckCoordinates.y 
 		nearestObstacle = puckFromEdgeLeftArrayReverse.indexOf(tileType)
 		#^ returns the coordinate of the block
+		if tileType is 0.5
+			tile2break('left', nearestObstacle)
 		if tileType is 1
 			puck.animate
 				properties: 
@@ -627,7 +891,7 @@ createLevel = () ->
 			if i > 0
 				tileType = i
 				break #stop going through the row
-		if i is 0
+		if i <= 0
 			puck.animate
 				properties: 
 					midY: cellMidY(puckCoordinates.x,rows-1)
@@ -638,6 +902,8 @@ createLevel = () ->
 			puckCoordinates.y = rows-1 
 		nearestObstacle = puckCol.indexOf(tileType)
 		#^ returns the coordinate of the block
+		if tileType is 0.5
+			tile2break('down', nearestObstacle)
 		if tileType is 1
 			puck.animate
 				properties: 
@@ -663,7 +929,7 @@ createLevel = () ->
 			if i > 0
 				tileType = i
 				break #stop going through the row
-		if i is 0
+		if i <= 0
 			puck.animate
 				properties: 
 					midY: cellMidY(puckCoordinates.x,0)
@@ -674,6 +940,8 @@ createLevel = () ->
 			puckCoordinates.y = 0 
 		nearestObstacle = puckCol.indexOf(tileType)
 		#^ returns the coordinate of the block
+		if tileType is 0.5
+			tile2break('up', nearestObstacle)
 		if tileType is 1
 			puck.animate
 				properties: 
@@ -799,7 +1067,35 @@ createLevel = () ->
 				y: titlebar.height+50
 # 		currentLevel = null
 		CurrentlevelName.html = mainMenu.name
-
+		
+	if debugMode
+		showSolutionButton = new Layer
+			superLayer: titlebar
+			height: titlebar.height-30
+			width: titlebar.height-30
+			backgroundColor: 'purple'
+			opacity: 0.8
+			x: 50
+			borderRadius: 10
+		showSolutionButton.centerY()
+		solutionShown = false
+		
+		showSolutionButton.on Events.Click, ->
+			if solutionShown
+					print 'hiding solution'
+					for rowIndex in [0...rows]
+						for ColIndex in [0...cols]
+							if currentLevel.board[rowIndex][ColIndex] is -1
+								cells[rowIndex][ColIndex].backgroundColor = 'white'
+					solutionShown = false
+			else
+					print 'showing solution'
+					for rowIndex in [0...rows]
+						for ColIndex in [0...cols]
+							if currentLevel.board[rowIndex][ColIndex] is -1
+								cells[rowIndex][ColIndex].backgroundColor = 'purple'
+					solutionShown = true
+					print solutionShown
 
 
 
@@ -830,6 +1126,10 @@ subheading = {
 
 winner.style = heading
 #winner.size = Utils.winner(winner.html, heading)
+winner.on Events.Click,->
+	winner.animate
+		properties: 
+			scale: 0
 
 createLevel()
 
@@ -857,3 +1157,6 @@ createLevel()
 #	controler.visible = false
 #	refreshButtton.visible = false
 
+# print currentLevel
+# print levelBuildingErrorCode
+# print Utils.round(Utils.randomNumber(0, 100))
